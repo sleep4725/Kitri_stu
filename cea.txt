@@ -1,0 +1,131 @@
+# include <stdio.h>
+# include <stdlib.h> // rand() 를 사용하기 위해
+# include <string.h>
+# include <stdbool.h>
+# define LEN 100
+# define ALPHA 26
+typedef struct _Cea
+{
+	char plainText[LEN];   // 평문
+	char cipherText[LEN];  // 암호문
+	char decryptText[LEN]; // 복호문
+	char field[ALPHA];
+	int enkey;
+} CEA, *ptrCea;
+// 함수 원형___________________________________________
+void writePlainText(CEA** cp);
+void secretKeySetting(CEA** cp);
+void encryptCea(CEA** cp);
+void decryptCea(CEA** cp);
+// ___________________________________________________
+int main(void)
+{
+	ptrCea ceaNode = NULL;
+	ceaNode = (ptrCea)malloc(sizeof(CEA));
+
+	if (ceaNode == NULL)
+	{
+		printf("malloc fail ... !!!\n");
+		exit(1);
+	}
+	else // ceaNode != NULL
+	{
+		int i; // index
+		strcpy(ceaNode->plainText, "\0");
+		strcpy(ceaNode->cipherText, "\0");
+		strcpy(ceaNode->decryptText, "\0");
+		for (i = 0; i < ALPHA; i++)
+		{
+			ceaNode->field[i] = (char)((int)'a' + i);
+		}
+		ceaNode->field[i] = '\0';
+	}
+	writePlainText(&ceaNode);
+	secretKeySetting(&ceaNode);
+	encryptCea(&ceaNode);
+	decryptCea(&ceaNode);
+	free(ceaNode); // 메모리 해제
+	return 0;
+} // end of main function
+void writePlainText(CEA** cp)
+{
+	printf("plainText input  :  ");
+	gets((**cp).plainText);
+	printf("plainText length : %d\n", strlen((**cp).plainText));
+} // end of writePlainText function 
+void secretKeySetting(CEA** cp)
+{
+	(**cp).enkey = rand() % 26; // 0 ~ 25 
+	printf("암호키는 %d 입니다. \n", (**cp).enkey);
+} // end of secretKeySetting function
+void encryptCea(CEA** cp)
+{
+	int i,j;
+	int mv;
+	int flag;
+	for (i = 0; i < strlen((**cp).plainText); i++)
+	{
+		flag = false;
+		// 만약 해당하는 문자가 있다면
+		for (j = 0; j < strlen((**cp).field); j++)
+		{
+			if ((**cp).plainText[i] == (**cp).field[j])
+			{
+				mv = (j + (**cp).enkey) % strlen((**cp).field);
+				flag = true;
+				break;
+			}
+		}
+		if (flag == true)
+		{
+			(**cp).cipherText[i] = (**cp).field[mv];
+		}
+		else
+		{ // flag == false
+			(**cp).cipherText[i] = (**cp).plainText[i];
+		}
+	}
+	(**cp).cipherText[i] = '\0';
+	printf("암호문 :   %s\n", (**cp).cipherText);
+} // end of encryptCea function 
+void decryptCea(CEA** cp)
+{
+	int i, j;
+	int mv;
+	int flag;
+	for (i = 0; i < strlen((**cp).cipherText); i++)
+	{
+		flag = false;
+		// 만약 해당하는 문자가 있다면
+		for (j = 0; j < strlen((**cp).field); j++)
+		{
+			if ((**cp).cipherText[i] == (**cp).field[j])
+			{
+				mv = (j - (**cp).enkey);
+				if (mv < 0)
+				{
+					mv += strlen((**cp).field);
+				}
+				else if (mv > 0)
+				{
+					if (mv >= strlen((**cp).field))
+					{
+						mv %= strlen((**cp).field);
+					}
+				}
+				flag = true;
+				break;
+			}
+		}
+		if (flag == true)
+		{
+			(**cp).decryptText[i] = (**cp).field[mv];
+		}
+		else
+		{ // flag == false
+			(**cp).decryptText[i] = (**cp).cipherText[i];
+		}
+	}
+	(**cp).decryptText[i] = '\0';
+	printf("복호문 :   %s\n", (**cp).decryptText);
+} // end of decryptCea function 
