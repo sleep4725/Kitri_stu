@@ -1,0 +1,255 @@
+# include <stdio.h>
+// 함수 원형______________________________________
+void menu();
+void addFunction(int, int);
+void subFunction(int, int);
+void mulFunction(int, int);
+void divFunction(int, int);
+//________________________________________________
+int main(void)
+{
+	int v1 = 0; // initiallize
+	int v2 = 0;
+	char* sPrompt = "%d %d";
+	char* mPrompt = "choice :   ";
+	char* m1Prompt = "%d";
+	int choice = 0;
+	__asm
+	{
+		// scanf("%d %d", &v1, &v2);
+
+		LEA 	EDI, v2; // EDI = &v2;
+		PUSH 	EDI; // (  &v2);
+
+		LEA 	EDI, v1; // EDI = &v1;
+		PUSH 	EDI; // (  &v1, &v2); 
+
+		MOV 	EAX, DWORD PTR[sPrompt];
+		PUSH 	EAX; // ("%d %d", &v1, &v2);
+
+		CALL 	DWORD PTR[scanf];
+
+		// stack 정리  POP EBX;
+		ADD 	ESP, 0xC;
+
+		CALL 	DWORD PTR[menu];
+		PUSH 	DWORD PTR[mPrompt];
+		CALL 	DWORD PTR[printf];
+		POP 	EBX;
+		// scanf("%d", &choice);
+		LEA 	EDI, DWORD PTR[choice]; // EDI = &choice;
+		PUSH 	EDI;
+		MOV 	EAX, DWORD PTR[m1Prompt];
+		PUSH 	EAX;
+		CALL 	DWORD PTR[scanf];
+		ADD 	ESP, 0x8;
+
+		// 비교
+		MOV 	EAX, DWORD PTR[choice];
+		CMP 	EAX, 0x1;
+		JE 		addJumpFunc; // Jump Equal 
+		JNE 	gogossing1; // Jump Not Equal
+	addJumpFunc:
+		// addFunction( v1, v2 );
+		PUSH 	DWORD PTR[v2];
+		PUSH 	DWORD PTR[v1];
+		CALL 	DWORD PTR[addFunction];
+		// stack 정리 
+		ADD 	ESP, 0x8;
+		JMP 	TheEnd;
+	gogossing1:
+		CMP 	EAX, 0x2;
+		JE 		subJumpFunction;
+		JNE 	gogossing2;
+	subJumpFunction:
+		// subFunction( v1, v2 );
+		PUSH 	DWORD PTR[v2];
+		PUSH 	DWORD PTR[v1];
+		CALL 	DWORD PTR[subFunction];
+		// stack 정리 
+		ADD 	ESP, 0x8;
+		JMP 	TheEnd;
+	gogossing2:
+		CMP 	EAX, 0x3;
+		JE 		mulJumpFunction;
+		JNE 	gogossing3;
+	mulJumpFunction:
+		// subFunction( v1, v2 );
+		PUSH 	DWORD PTR[v2];
+		PUSH 	DWORD PTR[v1];
+		CALL 	DWORD PTR[mulFunction];
+		// stack 정리 
+		ADD 	ESP, 0x8;
+		JMP 	TheEnd;
+	gogossing3:
+		CMP 	EAX, 0x4;
+		JE		divJumpFunction;
+		JNE 	gogossing4;
+	divJumpFunction:
+		// subFunction( v1, v2 );
+		PUSH 	DWORD PTR[v2];
+		PUSH 	DWORD PTR[v1];
+		CALL 	DWORD PTR[divFunction];
+		// stack 정리 
+		ADD 	ESP, 0x8;
+		JMP 	TheEnd;
+	gogossing4:
+		JMP 	TheEnd;
+	}
+TheEnd:
+	return 0;
+} // end of main function 
+void menu()
+{
+	char* addprompt = "1) addtion call ... !!!\n";
+	char* subprompt = "2) subtraction call ... !!!\n";
+	char* mulprompt = "3) multiplication call ... !!!\n";
+	char* divprompt = "4) dividen call ... !!!\n";
+	__asm
+	{
+		PUSH 	addprompt;
+		CALL 	DWORD PTR[printf];
+		POP 	EBX;
+
+		PUSH 	subprompt
+		CALL 	DWORD PTR[printf];
+		POP 	EBX;
+
+		PUSH 	mulprompt
+		CALL 	DWORD PTR[printf];
+		POP 	EBX;
+
+		PUSH 	divprompt
+		CALL 	DWORD PTR[printf];
+		POP 	EBX;
+	}
+} // end of menu function 
+
+void addFunction(int p1, int p2)
+{
+	/*
+	[high address]
+	parameter : p2 : DWORD PTR[ebp + 0xc]
+	parameter : p1 : DWORD PTR[ebp + 0x8]
+	ret ( return address )
+	ebp ( extended base pointer )
+
+	esp ( extended stack pointer )
+	[low address]
+	*/
+	char* resultPrompt = "%d + %d = %d\n";
+	__asm
+	{
+		// printf("%d + %d = %d\n", p1, p2, p1+p2);
+		MOV 	EAX, DWORD PTR[EBP + 0x8];
+		ADD 	EAX, DWORD PTR[EBP + 0xC];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[EBP + 0xC];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[EBP + 0x8];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[resultPrompt];
+		PUSH 	EAX;
+		CALL 	DWORD PTR[printf];
+		ADD 	ESP, 0x10; // stack 정리 
+		LEAVE;
+		RETN;
+	}
+} // end of addFunction function 
+
+void subFunction(int p1, int p2)
+{
+	/*
+	[high address]
+	parameter : p2 : DWORD PTR[ebp + 0xc]
+	parameter : p1 : DWORD PTR[ebp + 0x8]
+	ret ( return address )
+	ebp ( extended base pointer )
+
+	esp ( extended stack pointer )
+	[low address]
+	*/
+	char* resultPrompt = "%d - %d = %d\n";
+	__asm
+	{
+		// printf("%d - %d = %d\n", p1, p2, p1-p2);
+		MOV 	EAX, DWORD PTR[EBP + 0x8];
+		SUB		EAX, DWORD PTR[EBP + 0xC];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[EBP + 0xC];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[EBP + 0x8];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[resultPrompt];
+		PUSH 	EAX;
+		CALL 	DWORD PTR[printf];
+		ADD 	ESP, 0x10; // stack 정리 
+		LEAVE;
+		RETN;
+	}
+} // end of subFunction function 
+
+void mulFunction(int p1, int p2)
+{
+	/*
+	[high address]
+	parameter : p2 : DWORD PTR[ebp + 0xc]
+	parameter : p1 : DWORD PTR[ebp + 0x8]
+	ret ( return address )
+	ebp ( extended base pointer )
+
+	esp ( extended stack pointer )
+	[low address]
+	*/
+	char* resultPrompt = "%d x %d = %d\n";
+	__asm
+	{
+		// printf("%d x %d = %d\n", p1, p2, p1*p2);
+		MOV 	EAX, DWORD PTR[EBP + 0x8];
+		MUL		DWORD PTR[EBP + 0xC];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[EBP + 0xC];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[EBP + 0x8];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[resultPrompt];
+		PUSH 	EAX;
+		CALL 	DWORD PTR[printf];
+		ADD 	ESP, 0x10; // stack 정리 
+		LEAVE;
+		RETN;
+	}
+} // end of mulFunction function
+
+void divFunction(int p1, int p2)
+{
+	/*
+	[high address]
+	parameter : p2 : DWORD PTR[ebp + 0xc]
+	parameter : p1 : DWORD PTR[ebp + 0x8]
+	ret ( return address )
+	ebp ( extended base pointer )
+
+	esp ( extended stack pointer )
+	[low address]
+	*/
+	char* resultPrompt = "%d / %d = %d\n";
+	__asm
+	{
+		// printf("%d x %d = %d\n", p1, p2, p1/p2);
+		XOR 	EDX, EDX; // EDX는 나눗셈의 나머지값이 들어간다 반드시 초기화해야함 
+		MOV 	EAX, DWORD PTR[EBP + 0x8];
+		DIV		DWORD PTR[EBP + 0xC];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[EBP + 0xC];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[EBP + 0x8];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[resultPrompt];
+		PUSH 	EAX;
+		CALL 	DWORD PTR[printf];
+		ADD 	ESP, 0x10; // stack 정리 
+		LEAVE;
+		RETN;
+	}
+} // end of divFunction function
