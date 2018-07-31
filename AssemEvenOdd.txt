@@ -1,0 +1,47 @@
+# include <stdio.h>
+
+int main(void)
+{
+	int v = 0x0;
+	char* sPrompt = "%d";
+	char* ePrompt = "Even number ...!!!\n";
+	char* oPrompt = "Odd number ...!!!\n";
+	__asm
+	{
+		// scanf("%d", &v)
+		LEA	EDI, DWORD PTR[v]; // EDI = &v
+		PUSH	EDI;
+		MOV	EAX, DWORD PTR[sPrompt];
+		PUSH	EAX;
+		CALL	DWORD PTR[scanf]; 
+
+		// stack 정리
+		ADD		ESP, 0x8;
+
+		XOR		EDX, EDX; 
+		MOV		EAX, DWORD PTR[v];
+		MOV		EBX, 0x2;
+		DIV		EBX; // 반드시 레지스터로 나눌 것
+		CMP		EDX, 0x0;
+		JE		EvenJump;
+		JNE		OddJump;
+
+	EvenJump:
+		// printf("Even number ...!!!\n");
+		MOV	EAX, DWORD PTR[ePrompt];
+		PUSH	EAX;
+		CALL	DWORD PTR[printf];
+		POP	EBX;
+		JMP	THE_END;
+
+	OddJump:
+		// printf("Even number ...!!!\n");
+		MOV	EAX, DWORD PTR[oPrompt];
+		PUSH	EAX;
+		CALL	DWORD PTR[printf];
+		POP	EBX;
+		JMP	THE_END;
+	}
+THE_END:
+	return 0;
+}
