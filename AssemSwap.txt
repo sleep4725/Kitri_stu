@@ -1,0 +1,44 @@
+// xchg 
+# include <stdio.h>
+
+int main(void)
+{
+	int x1 = 0x10; // decimal : 16
+	int x2 = 0x11; // decimal : 17
+
+	char* prmpt = "x1 : %d       x2 : %d\n";
+
+	__asm
+	{
+		// printf("x1 : %d       x2 : %d\n", x1, x2);
+		MOV 	EAX, DWORD PTR[x2];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[x1];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[prmpt];
+		PUSH 	EAX;
+		CALL 	DWORD PTR[printf];
+
+		// stack 정리 
+		ADD 	ESP, 0xC;
+
+		// swap 
+		MOV 	EAX, DWORD PTR[x1];
+		MOV 	EBX, DWORD PTR[x2];
+		MOV 	DWORD PTR[x1], EBX;
+		MOV 	DWORD PTR[x2], EAX;
+
+		// printf("x1 : %d       x2 : %d\n", x1, x2);
+		MOV 	EAX, DWORD PTR[x2];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[x1];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[prmpt];
+		PUSH 	EAX;
+		CALL 	DWORD PTR[printf];
+
+		// stack 정리 
+		ADD 	ESP, 0xC;
+	}
+	return 0;
+}
