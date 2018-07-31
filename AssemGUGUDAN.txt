@@ -1,0 +1,59 @@
+# include <stdio.h>
+
+void gugudan(int d);
+int main(void)
+{
+	int dan = 2;
+	__asm
+	{
+		// 2 ~ 9
+		MOV		ECX, 0x8;
+	D_:
+		// ECX 보존
+		PUSH	ECX;
+
+		MOV		EAX, DWORD PTR[dan]; // EAX = dan
+		PUSH	EAX;
+		CALL	DWORD PTR[gugudan];
+		POP		EAX;
+		MOV		EAX, DWORD PTR[dan];
+		INC		EAX; // EAX += 1
+		MOV		DWORD PTR[dan], EAX;
+
+		// ECX 반환
+		POP		ECX;
+		LOOP	D_;
+	}
+} // end of main function 
+void gugudan(int d)
+{
+	char* prompt = "%02d x %02d = %02d\n";
+	int i = 1;
+	__asm
+	{
+		MOV		ECX, 0x9;
+	L_:
+		// ECX 보존
+		PUSH	ECX;
+
+		MOV		EAX, DWORD PTR[EBP + 0x8];
+		MOV		EBX, DWORD PTR[i];
+		MUL		EBX;
+
+		// printf("%d x %d = %d", d, i, d*i);
+		PUSH	EAX;
+		PUSH	DWORD PTR[i];
+		PUSH	DWORD PTR[EBP + 0x8];
+		PUSH	DWORD PTR[prompt];
+		CALL	DWORD PTR[printf];
+		ADD		ESP, 0x10;
+
+		MOV		EBX, DWORD PTR[i];
+		INC		EBX;
+		MOV		DWORD PTR[i], EBX;
+
+		// ECX 반환
+		POP		ECX;
+		LOOP	L_;
+	}
+} // end of gugudan function 
