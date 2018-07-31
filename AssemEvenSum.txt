@@ -1,0 +1,70 @@
+/*
+General register ( 범용레지스터 )
+64b   32b   16b  8b   8b
+RAX - EAX - AX - AH - AL : Accumulator
+RBX - EBX - BX - BH - BL : EAX 백업
+RCX - ECX - CX - CH - CL : Counter
+RDX - EDX - DX - DH - DL : data
+- EIP (              : Instructor
+- EBP
+- ESP
+
+Flag register
+*/
+# include <stdio.h>
+
+int main(void)
+{
+	// local variable 
+	int reSum = 0x0;
+	char* resultPrompt = "Even sum result :   %d\n";
+
+	// inline assem
+	__asm
+	{
+		MOV 	ECX, 0xA;
+
+	L:
+		// ECX 보존 ________________________________		
+		PUSH 	ECX;
+
+
+		MOV 	EAX, ECX;
+		XOR 	EDX, EDX; // EDX = 0x0, div 연산에서 remainder 값이 적재됨  
+		MOV 	EBX, 0x2;
+		DIV 	EBX; // Q(몫) : EAX,  R(나머지) : EDX
+
+		// 비교   EDX와 0x0 
+		// case1) EDX == 0x0 : Even number   
+		// case2) EDX != 0x0 : Odd number
+		CMP 	EDX, 0x0;
+		JE 		zeroJmp; // JE : Jump Equal
+		JNE 	notZeroJmp; // JNE : Jump Not Equal 
+	zeroJmp:
+		// stack 에서 ECX에 집어 넣은 값을 꺼내자 
+		POP 	EAX;
+		PUSH 	EAX;
+
+		MOV 	EBX, DWORD PTR[reSum];
+		ADD 	EAX, EBX;
+		MOV	DWORD PTR[reSum], EAX;
+		JMP		J;
+		// ECX 값 반환 _____________________________
+	notZeroJmp:
+		JMP		J;
+	J:
+		POP 	ECX;
+		Loop 	L;
+
+		// printf("... %d\n", reSum);
+
+		MOV 	EAX, DWORD PTR[reSum];
+		PUSH 	EAX;
+		MOV 	EAX, DWORD PTR[resultPrompt];
+		PUSH 	EAX;
+		CALL 	DWORD PTR[printf];
+		ADD 	ESP, 0x8;
+
+	}
+	return 0;
+}
