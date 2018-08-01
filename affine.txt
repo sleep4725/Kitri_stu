@@ -1,0 +1,294 @@
+// Affine cipher
+// KeyPoint : prime number !!!
+# include <stdio.h>
+# include <stdlib.h> // malloc 
+# include <string.h> // strlen 
+# include <math.h> // sqrt
+# include <stdbool.h>
+# include <time.h>
+# define SIZE 200
+# define TMP 200
+# define ERROR 1
+typedef struct _AffCipher
+{
+	char plainText[SIZE];   // 평문
+	char cipherText[SIZE];  // 암호문
+	char decryptText[SIZE]; // 복호문
+	char fildSett[TMP];
+	unsigned int addKey; //
+	unsigned int mulKey;
+	unsigned int revKey; // 복호화 키
+} Affine, *ptrAffine;
+// 함수 원형 ________________________________________________________
+void initialize(Affine **);       // func (0)
+void fildSetting(Affine **);      // func (1)
+void plainTextWrite(Affine **);   // func (2)
+void keySettingOne(Affine **);    // func (3)
+void keySettingTwo(Affine **);    // func (4)
+void subKeySettingTwo(Affine **); // func (5)
+void encryptAffine(Affine **);    // func (6)
+void decryptAffine(Affine **);    // func (7)
+// __________________________________________________________________
+int main(void)
+{
+	srand((unsigned)time(NULL));
+	ptrAffine meAff = NULL;
+	meAff = (ptrAffine)malloc(sizeof(Affine));
+	if (meAff == NULL)
+	{
+		fprintf(stderr, "memory allocation error ...\n");
+		exit(1);
+	}
+	else
+	{ // meAff != NULL
+		// 데이터 초기화
+		initialize(&meAff);
+		fildSetting(&meAff);
+		plainTextWrite(&meAff);
+		keySettingOne(&meAff);
+		keySettingTwo(&meAff);
+
+		encryptAffine(&meAff);
+		decryptAffine(&meAff);
+	}
+	free(meAff);
+	return 0;
+} // end of main function 
+  // 함수 구현부 _______________________________________________________
+  // func (0)
+void initialize(Affine **p)
+{
+	(**p).addKey = 0x0;
+	(**p).mulKey = 0x0;
+	(**p).revKey = 0x0;
+
+	memset((**p).plainText,  '\0', sizeof(char)*SIZE);
+	memset((**p).cipherText, '\0', sizeof(char)*SIZE);
+	memset((**p).decryptText,'\0', sizeof(char)*SIZE);
+	memset((**p).fildSett,   '\0', sizeof(char)*TMP);
+} // end of initialize function 
+  // func (1)
+void fildSetting(Affine **p)
+{
+	int i; // index
+	int index = 0x0;
+	// lower case ('a' ~ 'z') : 26개
+	for (i = (int)'a'; i <= (int)'z'; i++)
+	{
+		(** p).fildSett[index] = (char)i;
+		index += 1;
+	}
+
+	// upper case ('A' ~ 'Z') : 26개 
+	for (i = (int)'A'; i <= (int)'Z'; i++)
+	{
+		(** p).fildSett[index] = (char)i;
+		index += 1;
+	}
+
+	// 1. 특수문자 => 'sp' ~ '/'
+	for (i = (int)' '; i <= (int)'/'; i++)
+	{
+		(** p).fildSett[index] = (char)i;
+		index += 1;
+	}
+
+	// 2. 특수문자 => ':' ~ '@'
+	for (i = (int)':'; i <= (int)'@'; i++)
+	{
+		(** p).fildSett[index] = (char)i;
+		index += 1;
+	}
+
+	// 3. 특수문자 => '[' ~ '`'
+	for (i = (int)'['; i <= (int)'`'; i++)
+	{
+		(** p).fildSett[index] = (char)i;
+		index += 1;
+	}
+
+	// 4. 특수문자 => '{' ~ '~'
+	for (i = (int)'['; i <= (int)'`'; i++)
+	{
+		(** p).fildSett[index] = (char)i;
+		index += 1;
+	}
+
+	// 숫자 
+	for (i = (int)'0'; i <= (int)'9'; i++)
+	{
+		(** p).fildSett[index] = (char)i;
+		index += 1;
+	}
+	(** p).fildSett[index] = '\0';
+	printf("field total length => %d\n", strlen((** p).fildSett));
+} // end of fildSetting function 
+
+  // func (2)
+void plainTextWrite(Affine **p)
+{
+	printf("평문을 입력해주세요 :    ");
+	gets((**p).plainText); // gets 함수는 경계검사를 하지 않기때문에 보안적 결함이 있다.
+} // end of plainTextWrite function 
+
+  // func (3)
+void keySettingOne(Affine **p)
+{
+	int T_range = strlen((**p).fildSett);
+	(**p).addKey = rand() % T_range;
+	printf("addKey => %d\n", (**p).addKey);
+	// [+] 0은 덧셈에 대한 항등원 이므로 연산을 하는 것이 의미 없다.
+} // end of keySettingOne function 
+
+  // func (4)
+void keySettingTwo(Affine **p)
+{
+	int i;
+	int T_number = (int)sqrt(strlen((** p).fildSett));
+	bool flag = false;
+	for (i = 1; i <= T_number; i++)
+	{
+		if (i == 1)
+		{
+			continue;
+		}
+		else // i != 1
+		{
+			if (strlen((** p).fildSett) % i == 0)
+			{
+				printf("%d를 약수 \n", i);
+				flag = true;
+				break;
+			}
+		}
+	}
+	if (flag)
+	{
+		printf("field 재 작성 ... \n");
+		exit(ERROR);
+	}
+	else
+	{
+		printf("%d is prime number\n", strlen((** p).fildSett));
+		subKeySettingTwo(p);
+	}
+
+} // end of keySettingTwo function 
+
+  // func (5)
+void subKeySettingTwo(Affine **p)
+{
+	unsigned int i;
+	unsigned int T_MULKEY = 0;
+	bool flag = false;
+	int totalLength = strlen((**p).fildSett);
+	// encrypt mulKey
+	(**p).mulKey = rand() % strlen((**p).fildSett);
+	T_MULKEY = (**p).mulKey;
+	printf("mulKey is %d\n", (**p).mulKey);
+
+	// decrypt mulKey
+	// case 1)
+	for (i = 1; i <= T_MULKEY; i++)
+	{
+		//printf("%2d\n", (T_MULKEY*i)%totalLength);
+		if (((T_MULKEY*i)%totalLength) == 1)
+		{
+			(**p).revKey = i;
+			flag = true;
+			break;
+		}
+	}
+	// case 2)
+	if (!flag)
+	{
+		for (i = T_MULKEY + 1; i < strlen((**p).fildSett); i++)
+		{
+			//printf("%2d\n", (T_MULKEY*i) % totalLength);
+			if (((T_MULKEY*i)%totalLength) == 1) 
+			{
+				(**p).revKey = i;
+				break;
+			}
+		}
+	}
+	printf("revKey is %d\n", (**p).revKey);
+} // end of subKeySettingTwo function
+
+void encryptAffine(Affine **p)
+{
+	// encrypt '+' -> 'x'
+	unsigned int i, j;
+	unsigned int T_mv;
+	unsigned int T_INDX = 0x0;
+	unsigned int T;
+	bool flag;
+	for (i = 0; i < strlen((**p).plainText); i++)
+	{
+		flag = false;
+		T_mv = 0x0;
+		for (j = 0; j < strlen((**p).fildSett); j++)
+		{
+			if ((**p).plainText[i] == (**p).fildSett[j])
+			{
+				T_mv = j;
+				flag = true;
+				break;
+			}
+		}
+
+		if (!flag) // 해당 필드에 없는 문자라면 
+		{
+			(**p).cipherText[T_INDX] = (**p).plainText[i];
+		}
+		else // 해당 필드에 있는 문자라면
+		{
+			T = (T_mv + (**p).addKey); // 1. 더하고 
+			T = (T*(**p).mulKey) % (strlen((**p).fildSett)); // 2. 곱하고
+			(**p).cipherText[T_INDX] = (**p).fildSett[T];
+		}
+		T_INDX += 1;
+	}
+	printf("[+] cipherText is %s\n", (**p).cipherText);
+} // end of encryptAffine function 
+
+void decryptAffine(Affine **p)
+{
+	// decrypt 'x' -> '-'
+	unsigned int i, j;
+	unsigned int T_mv;
+	unsigned int T_INDX = 0x0;
+	int T = 0x0;
+	bool flag;
+	for (i = 0; i < strlen((**p).cipherText); i++)
+	{
+		flag = false;
+		T_mv = 0x0;
+		for (j = 0; j < strlen((**p).fildSett); j++)
+		{
+			if ((**p).cipherText[i] == (**p).fildSett[j])
+			{
+				T_mv = j;
+				flag = true;
+				break;
+			}
+		}
+
+		if (!flag) // 해당 필드에 없는 문자라면 
+		{
+			(**p).decryptText[T_INDX] = (**p).cipherText[i];
+		}
+		else // 해당 필드에 있는 문자라면
+		{
+			T = (T_mv*(**p).revKey) % (strlen((**p).fildSett)); // 1. 곱하고
+			T = (T - (**p).addKey); // 2. 빼고
+			if (T < 0)
+			{
+				T += strlen((**p).fildSett);
+			}
+			(**p).decryptText[T_INDX] = (**p).fildSett[T];
+		}
+		T_INDX += 1;
+	}
+	printf("[+] decryptText is %s\n", (**p).decryptText);
+}
