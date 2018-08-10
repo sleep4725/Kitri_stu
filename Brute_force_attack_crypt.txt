@@ -1,0 +1,56 @@
+# include <stdio.h>
+# include <string.h>
+# include <crypt.h>
+# define L 4
+typedef struct _Brute
+{
+        int attackInt;
+        char test[L];
+}_Brute;
+
+void __init__(_Brute*);
+void __bruteAttack__(_Brute*);
+const char* hash_data = "$1$Ztdk5oPC$F2zEVNOA7ZGWj9KRaohjf0";
+int main(void)
+{
+        _Brute att;
+        // step 01
+        __init__ (&att);
+
+        // step 02
+        __bruteAttack__ (&att);
+
+        //sprintf(att.test, "%04d", att.attackInt);
+        //printf("%s\n", att.test);
+        return 0;
+} // end of main function
+void __init__(_Brute* p)
+{
+        int i;
+        (*p).attackInt = 0x0;
+        for (i = 0; i < L; i++)
+        {
+                (*p).test[i] = '0';
+        }
+} // end of __init__ function
+
+void __bruteAttack__(_Brute* p)
+{
+        int i;
+        for (i = 0; i <= 5555; i++)
+        {
+                sprintf((*p).test, "%04d", (*p).attackInt);
+                char *result = NULL;
+                int ok;
+                result = crypt((*p).test, hash_data);
+
+                /* Test the result */
+                ok = strcmp (result, hash_data) == 0;
+                if (ok == 1)
+                {
+                        printf("%s\n", (*p).test);
+                        break;
+                }
+                (*p).attackInt += 1;
+        }
+} // end of __bruteAttack__ function
