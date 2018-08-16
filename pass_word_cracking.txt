@@ -1,0 +1,22 @@
+# include <stdio.h>
+# include <string.h>
+# include <unistd.h>
+# include <crypt.h>
+int main(void)
+{
+	const char *hash_data = "$1$Ztdk5oPC$F2zEVNOA7ZGWj9KRaohjf0";
+
+	char* result = NULL;
+
+	int ok;
+
+	result = crypt(getpass("password input plz: "), hash_data);
+
+	ok = strcmp(result, hash_data) == 0;
+
+	printf("result => %s\n", result);
+
+	printf("ok => %d\n", ok);
+
+	return 0;
+}
